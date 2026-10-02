@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Localizador de Contato</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Localizador de Contato</h1>
+  <p>Preencha o que você lembra do número e veja todas as possibilidades reais de celular no Brasil.</p>
+</header>
+
+<main>
+  <section class="painel formulario">
+    <div class="entrada">
+      <h2>O que você sabe do número?</h2>
+      <p class="subtitulo">Digite o DDD (ou a sigla do estado, como SP) e os dígitos que lembra. Deixe em branco o que não sabe.</p>
+
+      <div class="cidade">
+        <input type="text" id="cidadeBusca" placeholder="Sabe a cidade? Digite aqui (ex.: Curitiba) e o DDD é preenchido" autocomplete="off" spellcheck="false">
+        <ul class="sugestoes" id="cidadeSugestoes" hidden></ul>
+      </div>
+
+      <div class="numero" id="digitos">
+        <span class="sinal">(</span>
+        <input class="ddd" id="dddDigitado" placeholder="DDD" autocomplete="off" autocapitalize="characters" spellcheck="false" title="DDD (ex.: 11) ou sigla do estado (ex.: SP)">
+        <span class="sinal">)</span>
+        <div class="nove" title="Todo celular brasileiro começa com 9">9</div>
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="1">
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="2">
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="3">
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="4">
+        <span class="sinal">-</span>
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="5">
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="6">
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="7">
+        <input class="digito" maxlength="1" inputmode="numeric" placeholder="?" data-pos="8">
+      </div>
+
+      <div class="legenda">
+        <span><span class="cor sabe"></span>Sei</span>
+        <span><span class="cor nao"></span>Não sei</span>
+        <span id="legendaDica" hidden><span class="cor dica"></span><span id="legendaDicaTexto">Possível pela base</span></span>
+        <button class="link" id="limparDigitos">Limpar tudo</button>
+      </div>
+      <div class="resumo-ddd" id="resumoDdd"></div>
+      <div class="inicios" id="inicios" hidden></div>
+
+      <details class="opcao" id="opcaoDdds">
+        <summary>Não sabe o DDD? Escolha vários ou um estado inteiro</summary>
+        <div class="conteudo">
+          <div class="ddd-acoes">
+            <button class="pequeno" id="dddTodos">Todos do Brasil</button>
+            <button class="pequeno" id="dddNenhum">Nenhum</button>
+          </div>
+          <div class="ddd-grupos" id="dddGrupos"></div>
+          <span class="campo"><span class="ajuda">Clique na sigla do estado para marcar todos os DDDs dele.</span></span>
+        </div>
+      </details>
+
+      <details class="opcao" id="opcaoAnatel">
+        <summary>Base oficial da Anatel <span class="selo" id="anatelSelo">não carregada</span></summary>
+        <div class="conteudo">
+          <div id="anatelVazia">
+            <p class="texto">Com a tabela oficial de faixas de celular, o app tira da lista os números de faixas que nunca foram entregues a nenhuma operadora, ou seja, que não existem.</p>
+            <ol class="passos">
+              <li>Abra o <a href="https://easi.abrtelecom.com.br/nsapn/#/public/files" target="_blank" rel="noopener">portal nSAPN (Anatel / ABR Telecom)</a>.</li>
+              <li>Em <b>Arquivos Públicos</b>, escolha <b>SMP</b> e baixe o arquivo.</li>
+              <li>Importe aqui (CSV, TXT ou ZIP). Fica salvo neste navegador.</li>
+            </ol>
+          </div>
+          <div id="anatelCarregada" hidden>
+            <p class="texto" id="anatelResumo"></p>
+            <div class="campo">
+              <label class="check"><input type="checkbox" id="soAtribuidas" checked> Só números de faixas distribuídas pela Anatel</label>
+            </div>
+            <div class="campo">
+              <span class="rotulo">Operadora de origem <button class="link" id="operadorasLimpar" hidden>limpar</button></span>
+              <div class="operadoras" id="operadoras"></div>
+              <span class="ajuda" id="operadorasAjuda">Marque uma ou mais para afunilar. Sem nenhuma marcada, vale qualquer operadora.
+                É a operadora onde o número foi criado, não necessariamente a atual.</span>
+              <div class="alerta" id="avisoPortabilidade" hidden>
+                <b>Atenção à portabilidade.</b> Se a pessoa trocou de operadora e manteve o número, ele continua na faixa da operadora antiga.
+                Ex.: quem é TIM hoje pode ter um número que nasceu na Vivo. Filtrando só pela operadora atual, o número certo pode ficar de fora.
+                Na dúvida, marque também as operadoras anteriores ou gere sem filtro e use a coluna "Origem" para priorizar.
+              </div>
+            </div>
+          </div>
+          <div class="ddd-acoes">
+            <button class="pequeno" id="anatelImportar">Importar arquivo SMP</button>
+            <button class="pequeno" id="anatelRemover" hidden>Remover base</button>
+            <input type="file" id="anatelArquivo" accept=".csv,.txt,.zip" hidden>
+          </div>
+          <div class="msg" id="anatelMensagem"></div>
+        </div>
+      </details>
+
+      <details class="opcao">
+        <summary>Refinar a busca <small>opcional</small></summary>
+        <div class="conteudo">
+          <div class="campo">
+            <span class="rotulo">Faixa de celular</span>
+            <div class="segmentado">
+              <label><input type="radio" name="faixa" value="ampla" checked><span>Todas<small>91 a 99</small></span></label>
+              <label><input type="radio" name="faixa" value="classica"><span>Só as antigas<small>96 a 99</small></span></label>
+            </div>
+            <span class="ajuda">As faixas 91 a 95 são mais novas e comuns nas capitais. 90 não existe para celular.</span>
+          </div>
+
+          <div class="campo">
+            <label for="prefixos">Começa com</label>
+            <input type="text" id="prefixos" placeholder="Ex.: 998, 999">
+            <span class="ajuda">Um ou mais começos possíveis, contando a partir do 9.</span>
+          </div>
+
+          <div class="dois">
+            <div class="campo">
+              <label for="contem">Tem estes dígitos</label>
+              <input type="text" id="contem" placeholder="Ex.: 7">
+              <span class="ajuda">Em alguma posição que você não sabe.</span>
+            </div>
+            <div class="campo">
+              <label for="exclui">Não tem estes dígitos</label>
+              <input type="text" id="exclui" placeholder="Ex.: 0, 1">
+              <span class="ajuda">Nas posições que você não sabe.</span>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label class="check"><input type="checkbox" id="semRepetidos"> Ignorar números com os 8 últimos dígitos iguais</label>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <div class="acao">
+      <div class="contagem" id="estimativa"></div>
+      <button class="primario" id="gerar">Gerar lista</button>
+      <div class="msg" id="mensagem"></div>
+    </div>
+  </section>
+
+  <section class="painel resultado">
+    <div class="topo">
+      <div class="titulo">
+        <h2>Lista de possibilidades</h2>
+        <div class="total" id="total">Nenhuma lista gerada ainda</div>
+      </div>
+      <button id="copiar" disabled>Copiar</button>
+      <button id="exportarExcel" disabled>Exportar Excel</button>
+      <button id="exportarCsv" disabled>Exportar CSV</button>
+    </div>
+    <div class="progresso"><div id="barraProgresso"></div></div>
+    <div class="cabecalho"><span>#</span><span>Número</span><span>DDD</span><span>UF</span><span title="Operadora onde o número foi criado. Por causa da portabilidade, pode não ser a atual.">Origem ⓘ</span></div>
+    <div class="lista" id="lista">
+      <div class="vazio" id="vazio">
+        <div class="icone">&#128222;</div>
+        <p><b>Nada por aqui ainda</b></p>
+        <p>Preencha o número ao lado e clique em "Gerar lista".</p>
+      </div>
+      <div class="espaco" id="espaco"></div>
+    </div>
+  </section>
+</main>
+
+<script src="municipios.js"></script>
+<script src="anatel.js"></script>
+<script src="excel.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
