@@ -858,6 +858,38 @@ function atualizarTotal() {
     : "");
 }
 
+// ---------- Modal "Como funciona" ----------
+
+const CHAVE_AJUDA_VISTA = "localizador-contato:ajuda-vista";
+
+function ajudaJaVista() {
+  try {
+    return localStorage.getItem(CHAVE_AJUDA_VISTA) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Na primeira visita é obrigatória: só fecha pelo "Entendi". */
+function abrirAjuda(obrigatoria) {
+  $("ajuda").classList.toggle("obrigatoria", obrigatoria);
+  if (!$("ajuda").open) $("ajuda").showModal();
+}
+
+function fecharAjuda(entendeu) {
+  const ajuda = $("ajuda");
+  if (!entendeu && ajuda.classList.contains("obrigatoria")) return;
+  if (entendeu) {
+    try {
+      localStorage.setItem(CHAVE_AJUDA_VISTA, "1");
+    } catch {}
+  }
+  const primeiraVez = ajuda.classList.contains("obrigatoria");
+  ajuda.classList.remove("obrigatoria");
+  ajuda.close();
+  if (primeiraVez) $("cidadeBusca").focus();
+}
+
 // ---------- Exportação ----------
 
 function baixar(conteudo, nome, tipo) {
@@ -973,9 +1005,16 @@ $("exportarExcel").addEventListener("click", exportarExcel);
 $("exportarCsv").addEventListener("click", exportarCsv);
 $("copiar").addEventListener("click", copiarLista);
 $("lista").addEventListener("scroll", () => requestAnimationFrame(renderizarLista));
-$("abrirAjuda").addEventListener("click", () => $("ajuda").showModal());
+$("abrirAjuda").addEventListener("click", () => abrirAjuda(false));
+$("ajuda").addEventListener("cancel", (e) => {
+  if ($("ajuda").classList.contains("obrigatoria")) e.preventDefault();
+});
+$("ajuda").addEventListener("close", () => {
+  if ($("ajuda").classList.contains("obrigatoria")) $("ajuda").showModal();
+});
 $("ajuda").addEventListener("click", (e) => {
-  if (e.target === e.currentTarget || e.target.closest("[data-fechar-ajuda]")) return $("ajuda").close();
+  if (e.target.closest("[data-entendi]")) return fecharAjuda(true);
+  if (e.target === e.currentTarget || e.target.closest("[data-fechar-ajuda]")) return fecharAjuda(false);
   const aba = e.target.closest("[data-aba]");
   if (!aba) return;
   document.querySelectorAll("#ajuda [data-aba]").forEach((b) => b.classList.toggle("ativa", b === aba));
@@ -1025,5 +1064,6 @@ $("operadorasLimpar").addEventListener("click", () => {
 });
 
 atualizarChips();
-$("cidadeBusca").focus();
+if (ajudaJaVista()) $("cidadeBusca").focus();
+else abrirAjuda(true);
 Anatel.carregarSalva().then(atualizarAnatelUI);

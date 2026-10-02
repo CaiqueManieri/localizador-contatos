@@ -66,6 +66,7 @@ dialog.ajuda::backdrop { background: rgba(15, 23, 42, .55); backdrop-filter: blu
   margin-left: auto; flex: none; width: 34px; height: 34px; padding: 0; border-radius: 50%;
   font-size: 22px; line-height: 1; color: var(--suave);
 }
+.ajuda.obrigatoria .aj-fechar { display: none; }
 .aj-abas { display: flex; gap: 4px; padding: 0 26px; border-bottom: 1px solid var(--borda); overflow-x: auto; }
 .aj-abas button {
   border: none; border-bottom: 3px solid transparent; border-radius: 0; background: none;
