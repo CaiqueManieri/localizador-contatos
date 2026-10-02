@@ -45,7 +45,29 @@ const inputsDigitos = [...document.querySelectorAll("#digitos input[data-pos]")]
 
 let resultado = new Float64Array(0);
 let resultadoOperadora = new Int16Array(0);
+let vistos = new Uint8Array(0);
+let totalVistos = 0;
+
+const CHAVE_VISTOS = "localizador-contato:vistos";
+const numerosVistos = new Set(lerVistosSalvos());
+
+function lerVistosSalvos() {
+  try {
+    return JSON.parse(localStorage.getItem(CHAVE_VISTOS)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function salvarVistos() {
+  try {
+    localStorage.setItem(CHAVE_VISTOS, JSON.stringify([...numerosVistos]));
+  } catch {
+    mostrarMensagem("Não foi possível salvar as marcações neste navegador.", "erro");
+  }
+}
 let totalResultado = 0;
+let resumoTotal = "";
 let gerando = false;
 
 // ---------- Seleção de DDD ----------
@@ -601,6 +623,9 @@ function crescerResultado() {
   const novoOp = new Int16Array(tamanho);
   novoOp.set(resultadoOperadora);
   resultadoOperadora = novoOp;
+  const novoVistos = new Uint8Array(tamanho);
+  novoVistos.set(vistos);
+  vistos = novoVistos;
 }
 
 function passaFiltros(assinante, cfg) {
@@ -626,6 +651,8 @@ function gerar() {
 
   resultado = new Float64Array(cfg.alvo);
   resultadoOperadora = new Int16Array(cfg.alvo);
+  vistos = new Uint8Array(cfg.alvo);
+  totalVistos = 0;
   const consultarAnatel = Anatel.carregada && !cfg.usaBase;
   totalResultado = 0;
   const it = cfg.usaBase ? Anatel.numerosNaBase(cfg.ddds, cfg.grupos, cfg.operadoras) : combinacoes(cfg);
@@ -640,6 +667,10 @@ function gerar() {
       if (!passaFiltros(assinante, cfg)) continue;
       if (totalResultado === resultado.length) crescerResultado();
       resultadoOperadora[totalResultado] = cfg.usaBase ? opBase : consultarAnatel ? Anatel.operadoraDe(String(numero)) : -1;
+      if (numerosVistos.has(numero)) {
+        vistos[totalResultado] = 1;
+        totalVistos++;
+      }
       resultado[totalResultado++] = numero;
     }
     $("barraProgresso").style.width = `${Math.min(100, (processados / cfg.alvo) * 100)}%`;
@@ -651,9 +682,10 @@ function gerar() {
     gerando = false;
     $("barraProgresso").style.width = "100%";
     const removidos = cfg.total - cfg.alvo;
-    $("total").innerHTML = `<b>${totalResultado.toLocaleString("pt-BR")}</b> números gerados` +
+    resumoTotal = `<b>${totalResultado.toLocaleString("pt-BR")}</b> números gerados` +
       (cfg.usaBase && removidos > 0 ? ` · ${removidos.toLocaleString("pt-BR")} descartados pela base da Anatel` : "") +
       (cfg.operadoras ? ` · <span title="Números que fizeram portabilidade continuam na faixa da operadora antiga e ficaram de fora.">filtrado por operadora de origem ⓘ</span>` : "");
+    atualizarTotal();
     $("copiar").disabled = totalResultado === 0;
     $("exportarExcel").disabled = totalResultado === 0;
     $("exportarCsv").disabled = totalResultado === 0;
@@ -781,11 +813,49 @@ function renderizarLista() {
     const numero = resultado[i];
     const { ddd } = partes(numero);
     const topo = escalado ? scrollTop + (i - primeiro) * ALTURA_LINHA : i * ALTURA_LINHA;
-    html += `<div class="linha-num" style="top:${topo}px"><span class="idx">${(i + 1).toLocaleString("pt-BR")}</span>` +
-      `<span>${formatar(numero)}</span><span>${ddd}</span><span class="uf">${UF_DO_DDD[ddd]}</span>` +
-      `<span class="op">${escaparHtml(nomeOperadora(i))}</span></div>`;
+    const visto = vistos[i] === 1;
+    html += `<div class="linha-num${visto ? " visto" : ""}" style="top:${topo}px" data-i="${i}">` +
+      `<input type="checkbox" class="marcar"${visto ? " checked" : ""} title="Já vi este número">` +
+      `<span class="idx">${(i + 1).toLocaleString("pt-BR")}</span>` +
+      `<span class="num">${formatar(numero)}</span><span>${ddd}</span><span class="uf">${UF_DO_DDD[ddd]}</span>` +
+      `<span class="op">${escaparHtml(nomeOperadora(i))}</span>` +
+      `<a class="wa" href="https://wa.me/55${numero}" target="_blank" rel="noopener" title="Abrir no WhatsApp">` +
+      `${ICONE_WHATSAPP}<span class="rotulo-wa">WhatsApp</span></a></div>`;
   }
   espaco.innerHTML = html;
+}
+
+const ICONE_WHATSAPP = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2Zm0 18.15c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.24 3.7 8.24 8.24 0 4.55-3.7 8.24-8.24 8.24Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.22-.16-.47-.28Z"/></svg>`;
+
+function marcarVisto(i, linha, visto) {
+  if ((vistos[i] === 1) === visto) return;
+  vistos[i] = visto ? 1 : 0;
+  totalVistos += visto ? 1 : -1;
+  visto ? numerosVistos.add(resultado[i]) : numerosVistos.delete(resultado[i]);
+  salvarVistos();
+  linha.classList.toggle("visto", visto);
+  linha.querySelector(".marcar").checked = visto;
+  atualizarTotal();
+}
+
+function desmarcarTodos() {
+  if (!confirm(`Desmarcar os ${totalVistos.toLocaleString("pt-BR")} números vistos desta lista?`)) return;
+  for (let i = 0; i < totalResultado; i++) {
+    if (!vistos[i]) continue;
+    vistos[i] = 0;
+    numerosVistos.delete(resultado[i]);
+  }
+  totalVistos = 0;
+  salvarVistos();
+  atualizarTotal();
+  renderizarLista();
+}
+
+function atualizarTotal() {
+  $("total").innerHTML = resumoTotal + (totalVistos
+    ? ` · <span class="vistos"><b>${totalVistos.toLocaleString("pt-BR")}</b> visto${totalVistos > 1 ? "s" : ""}</span>` +
+      ` <button class="link" data-desmarcar title="Desmarcar todos os números vistos desta lista">desmarcar</button>`
+    : "");
 }
 
 // ---------- Exportação ----------
@@ -803,12 +873,13 @@ function baixar(conteudo, nome, tipo) {
 }
 
 function exportarCsv() {
-  const pedacos = ["\uFEFFn;ddd;uf;numero;formatado;internacional;operadora_origem\r\n"];
+  const pedacos = ["\uFEFFn;ddd;uf;numero;formatado;internacional;operadora_origem;status\r\n"];
   let bloco = "";
   for (let i = 0; i < totalResultado; i++) {
     const numero = resultado[i];
     const { ddd, assinante } = partes(numero);
-    bloco += `${i + 1};${ddd};${UF_DO_DDD[ddd]};${ddd}${assinante};${formatar(numero)};+55${ddd}${assinante};${nomeOperadora(i)}\r\n`;
+    const status = vistos[i] === 1 ? "Verificado" : "Não verificado";
+    bloco += `${i + 1};${ddd};${UF_DO_DDD[ddd]};${ddd}${assinante};${formatar(numero)};+55${ddd}${assinante};${nomeOperadora(i)};${status}\r\n`;
     if (bloco.length > 1_000_000) {
       pedacos.push(bloco);
       bloco = "";
@@ -828,7 +899,7 @@ async function exportarExcel() {
       total: totalResultado,
       linha: (i) => {
         const numero = resultado[i];
-        return { numero, uf: UF_DO_DDD[partes(numero).ddd], operadora: nomeOperadora(i) };
+        return { numero, uf: UF_DO_DDD[partes(numero).ddd], operadora: nomeOperadora(i), verificado: vistos[i] === 1 };
       },
       aoProgresso: (fracao) => mostrarMensagem(`Gerando Excel: ${Math.floor(fracao * 100)}%`, ""),
     });
@@ -902,6 +973,26 @@ $("exportarExcel").addEventListener("click", exportarExcel);
 $("exportarCsv").addEventListener("click", exportarCsv);
 $("copiar").addEventListener("click", copiarLista);
 $("lista").addEventListener("scroll", () => requestAnimationFrame(renderizarLista));
+$("abrirAjuda").addEventListener("click", () => $("ajuda").showModal());
+$("ajuda").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget || e.target.closest("[data-fechar-ajuda]")) return $("ajuda").close();
+  const aba = e.target.closest("[data-aba]");
+  if (!aba) return;
+  document.querySelectorAll("#ajuda [data-aba]").forEach((b) => b.classList.toggle("ativa", b === aba));
+  document.querySelectorAll("#ajuda [data-painel]").forEach((p) => (p.hidden = p.dataset.painel !== aba.dataset.aba));
+  $("ajuda").querySelector(".aj-corpo").scrollTop = 0;
+});
+
+$("total").addEventListener("click", (e) => {
+  if (e.target.closest("[data-desmarcar]")) desmarcarTodos();
+});
+$("espaco").addEventListener("click", (e) => {
+  const linha = e.target.closest(".linha-num");
+  if (!linha) return;
+  const i = Number(linha.dataset.i);
+  if (e.target.matches(".marcar")) marcarVisto(i, linha, e.target.checked);
+  else if (e.target.closest(".wa")) marcarVisto(i, linha, true);
+});
 window.addEventListener("resize", renderizarLista);
 
 $("anatelImportar").addEventListener("click", () => $("anatelArquivo").click());

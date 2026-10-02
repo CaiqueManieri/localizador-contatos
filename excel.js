@@ -298,11 +298,13 @@ const Excel = (() => {
 
   async function* linhasAba(aba, indice, opcoes, texto, progresso) {
     const naoVerificado = texto(NAO_VERIFICADO);
+    const verificado = texto(VERIFICADO);
     let bloco = inicioAba(aba, indice, texto);
     for (let k = 0; k < aba.quantidade; k++) {
       const i = aba.inicio + k;
       const r = PRIMEIRA_LINHA + k;
-      const { numero, uf, operadora } = opcoes.linha(i);
+      const linha = opcoes.linha(i);
+      const { numero, uf, operadora } = linha;
       const ddd = Math.floor(numero / 1e9);
       bloco += `<row r="${r}">` +
         `<c r="A${r}" s="${S.indice}"><v>${i + 1}</v></c>` +
@@ -311,7 +313,7 @@ const Excel = (() => {
         `<c r="D${r}" s="${S.telefone}"><v>${numero}</v></c>` +
         `<c r="E${r}" s="${S.internacional}"><v>${55e11 + numero}</v></c>` +
         (operadora ? `<c r="F${r}" s="${S.texto}" t="s"><v>${texto(operadora)}</v></c>` : `<c r="F${r}" s="${S.texto}"/>`) +
-        `<c r="G${r}" s="${S.status}" t="s"><v>${naoVerificado}</v></c>` +
+        `<c r="G${r}" s="${S.status}" t="s"><v>${linha.verificado ? verificado : naoVerificado}</v></c>` +
         `<c r="H${r}" s="${S.texto}"/>` +
         `</row>`;
       if (bloco.length > 1 << 20) {
@@ -326,7 +328,7 @@ const Excel = (() => {
 
   /**
    * opcoes.total: quantidade de números
-   * opcoes.linha(i): { numero (DDD + 9 dígitos), uf, operadora }
+   * opcoes.linha(i): { numero (DDD + 9 dígitos), uf, operadora, verificado }
    * opcoes.aoProgresso(fracao): chamado durante a geração
    */
   async function gerar(opcoes) {

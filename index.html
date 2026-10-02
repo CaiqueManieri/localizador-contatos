@@ -9,9 +9,257 @@
 <body>
 
 <header>
-  <h1>Localizador de Contato</h1>
-  <p>Preencha o que você lembra do número e veja todas as possibilidades reais de celular no Brasil.</p>
+  <div class="marca">
+    <h1>Localizador de Contato</h1>
+    <p>Preencha o que você lembra do número e veja todas as possibilidades reais de celular no Brasil.</p>
+  </div>
+  <button class="botao-ajuda" id="abrirAjuda"><span class="icone-ajuda">?</span>Como funciona</button>
 </header>
+
+<dialog class="ajuda" id="ajuda" aria-labelledby="ajudaTitulo">
+  <div class="aj-topo">
+    <div>
+      <h2 id="ajudaTitulo">Como funciona</h2>
+      <p>Entenda o número de celular brasileiro e como cada parte do app ajuda a encontrar o contato.</p>
+    </div>
+    <button class="aj-fechar" data-fechar-ajuda title="Fechar" aria-label="Fechar">×</button>
+  </div>
+  <nav class="aj-abas" role="tablist">
+    <button class="ativa" data-aba="numero" role="tab">1. O número</button>
+    <button data-aba="campos" role="tab">2. Os campos</button>
+    <button data-aba="lista" role="tab">3. A lista</button>
+  </nav>
+
+  <div class="aj-corpo">
+    <!-- ---------- Aba 1: o número ---------- -->
+    <section data-painel="numero">
+      <h3>Anatomia de um celular</h3>
+      <p class="aj-texto">Todo celular no Brasil tem <b>11 dígitos</b>: 2 do DDD e 9 do número. Cada pedaço tem uma função.</p>
+
+      <div class="aj-anatomia">
+        <div class="aj-chave">Faixa: o 9 + 4 dígitos indicam qual operadora recebeu o número</div>
+        <div class="aj-dig ddd">11</div>
+        <div class="aj-dig nove">9</div>
+        <div class="aj-dig prefixo">8765</div>
+        <div class="aj-dig final">4321</div>
+        <div class="aj-rot ddd"><b>DDD</b>Região do país</div>
+        <div class="aj-rot nove"><b>Nono dígito</b>Todo celular começa com 9</div>
+        <div class="aj-rot prefixo"><b>Prefixo</b>Junto com o 9, forma a faixa</div>
+        <div class="aj-rot final"><b>Final</b>10.000 números em cada faixa</div>
+      </div>
+      <p class="aj-escrito">Como se escreve: <code>(11) 98765-4321</code> · No WhatsApp e no exterior: <code>+55 11 98765-4321</code></p>
+
+      <div class="aj-grade2">
+        <div class="aj-card">
+          <h4><span class="aj-bolinha ddd"></span>DDD: a região</h4>
+          <p>São 67 DDDs. O primeiro dígito já indica a região do país:</p>
+          <div class="aj-regioes">
+            <span><b>1x</b> SP</span>
+            <span><b>2x</b> RJ e ES</span>
+            <span><b>3x</b> MG</span>
+            <span><b>4x</b> PR e SC</span>
+            <span><b>5x</b> RS</span>
+            <span><b>6x</b> Centro-Oeste, TO, AC e RO</span>
+            <span><b>7x</b> BA e SE</span>
+            <span><b>8x</b> Nordeste</span>
+            <span><b>9x</b> Norte e MA</span>
+          </div>
+        </div>
+
+        <div class="aj-card">
+          <h4><span class="aj-bolinha nove"></span>Por que todo celular começa com 9</h4>
+          <p>Até 2012 os celulares tinham 8 dígitos. Entre 2012 (começando por SP) e 2016, todos ganharam um 9 na frente.</p>
+          <div class="aj-antes-depois">
+            <div><small>Antes</small><code>8765-4321</code></div>
+            <span class="aj-seta">→</span>
+            <div><small>Hoje</small><code><mark>9</mark> 8765-4321</code></div>
+          </div>
+          <p class="aj-nota">Por isso os números mais antigos costumam começar com 96 a 99. As faixas 91 a 95 são mais novas. O 90 não é usado para celular.</p>
+        </div>
+      </div>
+
+      <h3>Faixas e operadoras</h3>
+      <p class="aj-texto">A Anatel entrega os números às operadoras em blocos (faixas). Cada faixa é um DDD + um prefixo de 5 dígitos, com 10.000 finais possíveis. Faixas que nunca foram entregues <b>não existem</b>, e o app consegue tirá-las da lista quando você carrega a base da Anatel.</p>
+      <div class="aj-faixas">
+        <div class="aj-faixa op-a"><code>(11) 9 8765-<i>0000 a 9999</i></code><span>Entregue à Operadora A</span></div>
+        <div class="aj-faixa op-b"><code>(11) 9 8766-<i>0000 a 9999</i></code><span>Entregue à Operadora B</span></div>
+        <div class="aj-faixa vazia"><code>(11) 9 8767-<i>0000 a 9999</i></code><span>Nunca distribuída: não existe</span></div>
+      </div>
+
+      <div class="aj-alerta">
+        <div class="aj-portabilidade">
+          <span class="aj-op op-a">Nasceu na A</span>
+          <span class="aj-seta">→</span>
+          <span class="aj-op op-b">Mudou para B</span>
+          <span class="aj-seta">=</span>
+          <span class="aj-op op-a">Continua na faixa da A</span>
+        </div>
+        <p><b>Portabilidade:</b> quem troca de operadora e mantém o número continua na faixa original. Por isso o app mostra a <b>operadora de origem</b>, que pode não ser a atual.</p>
+      </div>
+
+      <h3>Cada dígito que você lembra divide a lista por 10</h3>
+      <div class="aj-escala">
+        <div><span>1 dígito faltando</span><i style="--w: 16%"></i><b>10</b></div>
+        <div><span>2 dígitos faltando</span><i style="--w: 32%"></i><b>100</b></div>
+        <div><span>3 dígitos faltando</span><i style="--w: 48%"></i><b>1.000</b></div>
+        <div><span>4 dígitos faltando</span><i style="--w: 64%"></i><b>10.000</b></div>
+        <div><span>5 dígitos faltando</span><i style="--w: 80%"></i><b>100.000</b></div>
+        <div><span>6 dígitos faltando</span><i style="--w: 100%"></i><b>1.000.000</b></div>
+      </div>
+      <p class="aj-nota">Os números são por DDD. Com vários DDDs, multiplique pela quantidade de DDDs escolhidos.</p>
+    </section>
+
+    <!-- ---------- Aba 2: os campos ---------- -->
+    <section data-painel="campos" hidden>
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-input">📍 Curitiba</div>
+          <div class="aj-mini-sug">Curitiba <small>PR · DDD <b>41</b></small></div>
+        </div>
+        <div>
+          <h4>Cidade</h4>
+          <p>Se você não lembra o DDD mas sabe a cidade, digite o nome e escolha na lista. O DDD é preenchido sozinho. Dá para filtrar pelo estado, como em "Bom Jesus PI".</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-linha"><span class="aj-caixa ddd">11</span><span class="aj-caixa ddd">SP</span><span class="aj-caixa ddd">11 21</span></div>
+        </div>
+        <div>
+          <h4>DDD</h4>
+          <p>Aceita um DDD (<code>11</code>), a sigla de um estado (<code>SP</code>, que marca todos os DDDs dele) ou vários DDDs separados por espaço ou vírgula. <code>BR</code> marca o Brasil inteiro.</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-linha">
+            <span class="aj-caixa fixo">9</span>
+            <span class="aj-caixa sabe">8</span>
+            <span class="aj-caixa sabe">7</span>
+            <span class="aj-caixa nao">?</span>
+            <span class="aj-caixa dica">6-9</span>
+            <span class="aj-caixa impossivel">×</span>
+          </div>
+          <div class="aj-legenda-mini">
+            <span><i class="sabe"></i>Sei</span><span><i class="nao"></i>Não sei</span><span><i class="dica"></i>Possível</span><span><i class="impossivel"></i>Nenhum</span>
+          </div>
+        </div>
+        <div>
+          <h4>Dígitos do número</h4>
+          <p>O 9 já vem fixo. Preencha os dígitos que você lembra e deixe em branco os que não sabe. Com a base da Anatel carregada, as caixas vazias mostram quais dígitos <b>podem</b> aparecer ali (ex.: <code>6-9</code>). Um <b>×</b> vermelho indica que nenhum dígito é possível com os filtros atuais.</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-linha">
+            <span class="aj-chip">9 8765<small>2.000 nº</small></span>
+            <span class="aj-chip">9 8766<small>800 nº</small></span>
+          </div>
+        </div>
+        <div>
+          <h4>Começos possíveis</h4>
+          <p>Quando a base da Anatel está carregada, o app lista os começos de número (faixas) que existem de verdade para o que você digitou. Clique em um para preencher os dígitos automaticamente.</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-linha">
+            <span class="aj-tag"><b>SP</b> todos os 9 DDDs</span>
+            <span class="aj-tag"><b>21</b> RJ</span>
+          </div>
+        </div>
+        <div>
+          <h4>Vários DDDs ou um estado inteiro</h4>
+          <p>Se não tem certeza do DDD, abra "Não sabe o DDD?" e marque vários, ou clique na sigla de um estado para marcar todos os DDDs dele. A lista cresce na mesma proporção.</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-linha"><span class="aj-selo">carregada</span></div>
+          <div class="aj-mini-linha">
+            <span class="aj-chip ativo">VIVO<small>1.200</small></span>
+            <span class="aj-chip">CLARO<small>800</small></span>
+            <span class="aj-chip">TIM<small>500</small></span>
+          </div>
+        </div>
+        <div>
+          <h4>Base oficial da Anatel e operadora de origem</h4>
+          <p>Importe o arquivo público de faixas (SMP) do portal da Anatel/ABR Telecom. O app passa a descartar números que não existem e mostra a operadora de origem de cada um. Marque uma ou mais operadoras para afunilar, lembrando da portabilidade: na dúvida, marque também as operadoras anteriores da pessoa.</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-seg"><span class="ativo">Todas<small>91 a 99</small></span><span>Só as antigas<small>96 a 99</small></span></div>
+        </div>
+        <div>
+          <h4>Refinar a busca</h4>
+          <ul class="aj-lista">
+            <li><b>Faixa de celular:</b> se o número é antigo, "Só as antigas" corta mais da metade das possibilidades.</li>
+            <li><b>Começa com:</b> um ou mais começos possíveis a partir do 9, como <code>998, 999</code>.</li>
+            <li><b>Tem estes dígitos:</b> você lembra que tem um 7, mas não sabe onde.</li>
+            <li><b>Não tem estes dígitos:</b> você tem certeza de que certo dígito não aparece nas posições em branco.</li>
+            <li><b>Ignorar repetidos:</b> remove números como <code>9 1111-1111</code>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Aba 3: a lista ---------- -->
+    <section data-painel="lista" hidden>
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-tabela">
+            <div><input type="checkbox" checked tabindex="-1" aria-hidden="true"><span class="riscado">(11) 98765-4301</span><span class="aj-wa">WhatsApp</span></div>
+            <div><input type="checkbox" tabindex="-1" aria-hidden="true"><span>(11) 98765-4302</span><span class="aj-wa">WhatsApp</span></div>
+          </div>
+        </div>
+        <div>
+          <h4>Marcar como visto</h4>
+          <p>Marque a caixa de cada número que você já conferiu: a linha fica riscada. As marcações ficam salvas neste navegador e voltam quando você gerar a lista de novo, mesmo depois de recarregar a página.</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-linha"><span class="aj-wa grande">WhatsApp</span></div>
+        </div>
+        <div>
+          <h4>Abrir no WhatsApp</h4>
+          <p>Abre a conversa com o número sem ligar e sem salvar o contato. Dá para ver se ele tem WhatsApp e, se a pessoa deixou público, a foto do perfil. Clicar já marca a linha como vista.</p>
+          <p class="aj-nota">Sem foto não quer dizer número errado: muita gente mostra a foto só para os contatos.</p>
+        </div>
+      </div>
+
+      <div class="aj-item">
+        <div class="aj-visual">
+          <div class="aj-mini-excel">
+            <div class="cab"><span>Número</span><span>Status</span></div>
+            <div><span>(11) 98765-4301</span><span class="ok">Verificado ▾</span></div>
+            <div><span>(11) 98765-4302</span><span class="pend">Não verificado ▾</span></div>
+          </div>
+        </div>
+        <div>
+          <h4>Exportar Excel</h4>
+          <p>Gera uma planilha formatada com filtro, número internacional e a coluna <b>Status</b>, que você troca numa lista suspensa. Os números que você marcou na tela já saem como "Verificado". O CSV é a versão simples, para importar em outros programas.</p>
+        </div>
+      </div>
+
+      <div class="aj-alerta">
+        <p><b>Use com calma e responsabilidade.</b> Abrir centenas de conversas seguidas no WhatsApp pode ser visto como atividade de robô e bloquear sua conta temporariamente. Confira algumas dezenas por dia e reduza a lista antes com a base da Anatel e os filtros.</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="aj-rodape">
+    <button class="primario" data-fechar-ajuda>Entendi</button>
+  </div>
+</dialog>
 
 <main>
   <section class="painel formulario">
@@ -154,7 +402,7 @@
       <button id="exportarCsv" disabled>Exportar CSV</button>
     </div>
     <div class="progresso"><div id="barraProgresso"></div></div>
-    <div class="cabecalho"><span>#</span><span>Número</span><span>DDD</span><span>UF</span><span title="Operadora onde o número foi criado. Por causa da portabilidade, pode não ser a atual.">Origem ⓘ</span></div>
+    <div class="cabecalho"><span title="Marque os números que você já conferiu">✓</span><span>#</span><span>Número</span><span>DDD</span><span>UF</span><span title="Operadora onde o número foi criado. Por causa da portabilidade, pode não ser a atual.">Origem ⓘ</span><span title="Abre a conversa no WhatsApp sem ligar. Mostra se o número tem conta e, se for pública, a foto do perfil."><span class="rotulo-wa">WhatsApp </span>ⓘ</span></div>
     <div class="lista" id="lista">
       <div class="vazio" id="vazio">
         <div class="icone">&#128222;</div>
